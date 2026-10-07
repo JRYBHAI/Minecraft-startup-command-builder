@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minecraft startup command builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f4;--surface:#fff;--sunk:#f1f4f2;--ink:#14201b;--muted:#66756d;--line:#e2e8e4;--grass:#0f9d6b;--grass-d:#0b7a53;--grass-t:#e3f5ed;--warn:#c2410c;--warn-t:#fff1e8;--code:#101714;--code-ink:#dcefe5;--code-dim:#7f948a;--sh:0 1px 2px rgba(20,32,27,.05),0 8px 28px rgba(20,32,27,.07);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--surface:#171e1b;--sunk:#1d2622;--ink:#e8f0eb;--muted:#8da097;--line:#27322d;--grass:#34d399;--grass-d:#6ee7b7;--grass-t:#16322a;--warn:#fb923c;--warn-t:#33210f;--code:#0b100e;--sh:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{--bg:#0f1412;--surface:#171e1b;--sunk:#1d2622;--ink:#e8f0eb;--muted:#8da097;--line:#27322d;--grass:#34d399;--grass-d:#6ee7b7;--grass-t:#16322a;--warn:#fb923c;--warn-t:#33210f;--code:#0b100e;--sh:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 420px at 85% -80px,var(--grass-t),transparent 70%),var(--bg);background-attachment:fixed;color:var(--ink);font:15.5px/1.6 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 20px 70px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:8px}
+h1{font:800 clamp(28px,4.6vw,42px)/1.1 "Manrope","Inter",system-ui,sans-serif;letter-spacing:-.025em;margin:0 0 10px}
+h2{font:700 18px/1.2 "Manrope","Inter",sans-serif;letter-spacing:-.01em;margin:0 0 16px}
+header p{margin:0;color:var(--muted);max-width:56ch;font-size:16px}
+.theme{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;border-radius:999px;box-shadow:var(--sh)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid color-mix(in srgb,var(--grass) 45%,transparent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;margin-top:28px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--sh)}
+.sticky{position:sticky;top:calc(16px + env(safe-area-inset-top,0px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px));overflow:auto}
+@media(max-width:900px){.sticky{position:static;max-height:none;overflow:visible}}
+.field{padding:14px 0;border-top:1px solid var(--line)}
+.field:first-of-type{border-top:0;padding-top:0}
+.field label{display:block;font-weight:600;font-size:14.5px;margin-bottom:6px}
+.field small{display:block;color:var(--muted);font-size:13px;margin-top:6px;line-height:1.45}
+input[type=text],input[type=number],select{width:100%;padding:11px 13px;font:inherit;font-size:15px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:12px;transition:border-color .15s,background .15s}
+input:hover,select:hover{border-color:color-mix(in srgb,var(--grass) 40%,var(--line))}
+input:focus,select:focus{background:var(--surface);border-color:var(--grass)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.toggle label{margin:0}
+.sw{display:inline-flex;flex:none;background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:3px}
+.sw button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13.5px;font-weight:500;padding:5px 15px;cursor:pointer;border-radius:999px;transition:background .18s,color .18s}
+.sw button[aria-pressed=true]{background:var(--grass);color:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.group-title{font:700 13px "Manrope","Inter",sans-serif;color:var(--muted);margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+.tabs{display:inline-flex;gap:2px;flex-wrap:wrap;margin-bottom:14px;background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:7px 15px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;border-radius:999px;transition:background .18s,color .18s}
+.tabs button[aria-selected=true]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(20,32,27,.18)}
+pre{margin:0;background:var(--code);color:var(--code-ink);padding:18px 18px 18px;border-radius:14px;font:13px/1.7 "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;min-height:140px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.fl{color:var(--code-ink)}.fl.h{color:#fcd34d}.fl.g{color:#7dd3fc}.fl.j{color:#f9a8d4}.fl.o{color:#c4b5fd}
+.copy{margin-top:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--grass);color:#fff;border:0;padding:11px 24px;font:700 15px "Manrope","Inter",sans-serif;cursor:pointer;border-radius:999px;box-shadow:0 4px 14px color-mix(in srgb,var(--grass) 40%,transparent);transition:transform .12s,background .15s}
+.btn:hover{background:var(--grass-d)}.btn:active{transform:scale(.97)}
+.legend{font-size:12.5px;color:var(--muted)}
+.legend i{font-style:normal;font-weight:600}
+.legend .a{color:#d99a00}.legend .b{color:#2f84c5}
+.meter{margin:22px 0 6px}
+.bar{position:relative;height:14px;background:var(--sunk);border-radius:999px;overflow:hidden}
+.bar .max{position:absolute;left:0;top:0;bottom:0;background:var(--grass-t);transition:width .3s}
+.bar .min{position:absolute;left:0;top:0;bottom:0;background:var(--grass);border-radius:999px;transition:width .3s}
+.bar .lim{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--warn)}
+.meter p{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.checks{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.checks{grid-template-columns:1fr}}
+.checks li{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;font-size:13.5px;background:var(--grass-t);color:var(--ink)}
+.checks li b{color:var(--grass-d);font-size:13.5px}
+.checks li.warn{background:var(--warn-t)}.checks li.warn b{color:var(--warn)}
+.section{margin-top:44px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--sh)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{background:var(--sunk);font-weight:600;font-size:13px;color:var(--muted)}
+td code,.chip{font:12.5px "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+td code{background:var(--sunk);padding:3px 7px;border-radius:7px;word-break:break-all}
+.chip{display:inline-block;padding:2px 11px;border-radius:999px;font-weight:600;font-family:"Inter",sans-serif}
+.chip.y{background:var(--grass-t);color:var(--grass-d)}.chip.n{background:var(--sunk);color:var(--muted)}
+tr.on td:first-child{box-shadow:inset 3px 0 var(--grass)}
+.filter{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.filter input{max-width:340px;border-radius:999px;padding-left:16px}
+.notes p{max-width:68ch;margin:0 0 14px}
+.notes p:last-child{margin:0}
+.notes strong{color:var(--grass-d)}
+.hl td{background:var(--grass-t)}
+footer{margin-top:34px;color:var(--muted);font-size:13px;max-width:70ch}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.88em}
+.brand{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.logo{flex:none;width:56px;height:56px;border-radius:14px;object-fit:cover;box-shadow:var(--sh);border:2px solid var(--surface)}
+.tabs button[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <div class="brand"><img class="logo" src="data:image/jpeg;base64,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" alt="" width="56" height="56"><h1 style="margin:0">Minecraft startup command builder</h1></div>
+    <p>Fill in the fields on the left. Your command updates as you type. Copy it into your start script or server manager.</p>
+  </div>
+  <button class="theme" id="theme" type="button">Switch to dark</button>
+</header>
+
+<div class="grid">
+  <section class="panel" aria-labelledby="in-h">
+    <h2 id="in-h">Your inputs</h2>
+    <div class="field two">
+      <div><label for="ram">Server RAM (GB)</label><input type="number" id="ram" min="1" step="0.5" value="8"></div>
+      <div><label for="total">Total RAM in this PC (GB)</label><input type="number" id="total" min="1" step="1" value="24"></div>
+    </div>
+    <small style="color:var(--muted);font-size:13px;display:block;margin:-2px 0 6px">Server RAM sets <code>-Xmx</code>; decimals like 1.5 are fine. Total RAM is only used for the safety check.</small>
+    <div class="field"><label for="launch">Server type</label><select id="launch"><option value="jar">Fabric, Quilt, Paper, Vanilla (-jar)</option><option value="forge">Forge / NeoForge 1.17+ (user_jvm_args.txt)</option></select>
+      <small id="lnote"></small></div>
+    <div class="field" id="jarf"><label for="jar">Server jar name or path</label><input type="text" id="jar" value="fabric-server-mc.1.20.1-loader.0.19.2-launcher.1.1.1.jar" spellcheck="false">
+      <small>Just the file name if the jar sits next to your start script, or a full path such as C:\servers\mine\server.jar. Quotes are added for you.</small></div>
+    <div class="field"><label for="java">Java executable</label><input type="text" id="java" value="java" spellcheck="false">
+      <small>Leave as <code>java</code> if <code>java -version</code> shows the right version (17 for 1.18 to 1.20.4, 21 for 1.20.5 and newer). Otherwise paste the full path to java.exe.</small></div>
+    <div class="field"><label for="jver">Java version</label><select id="jver"><option value="17">Java 17 (MC 1.18 to 1.20.4)</option><option value="21">Java 21 (MC 1.20.5 and newer)</option><option value="24">Java 24 or newer</option></select>
+      <small>Run <code>java -version</code> to check. This decides which flags are safe to use.</small></div>
+    <div class="field"><label for="gc">Garbage collector</label>
+      <select id="gc"><option>Aikar's G1 flags</option><option>Basic G1</option><option>Generational ZGC (Java 21+)</option></select>
+      <small id="gcnote"></small></div>
+
+    <p class="group-title">Options</p>
+    <div id="toggles"></div>
+    <div class="field"><label for="extra">Extra flags (optional)</label><input type="text" id="extra" placeholder="-Dfile.encoding=UTF-8" spellcheck="false">
+      <small>Anything else you want added. Leave blank if none.</small></div>
+  </section>
+
+  <section class="panel sticky" aria-labelledby="out-h">
+    <h2 id="out-h">Your startup command</h2>
+    <div class="tabs" role="tablist" id="tabs" aria-label="Output format">
+      <button role="tab" aria-selected="true" data-t="cmd">Command</button>
+      <button role="tab" aria-selected="false" data-t="args" id="targs" hidden>user_jvm_args.txt</button>
+      <button role="tab" aria-selected="false" data-t="bat">Windows start.bat</button>
+      <button role="tab" aria-selected="false" data-t="sh">Linux / Mac start.sh</button>
+    </div>
+    <pre id="out" tabindex="0" role="tabpanel" aria-label="Generated startup command" aria-live="polite"></pre>
+    <div class="copy">
+      <button class="btn" id="copy" type="button">Copy</button>
+      <span class="legend" id="legend"><i class="a">Memory</i> &nbsp; <i class="b">Collector</i> &nbsp; <i style="color:#c0486b">Jar</i></span>
+      <span id="msg" class="legend" role="status"></span>
+    </div>
+    <div class="meter">
+      <div class="bar" id="bar"><div class="max" id="bmax"></div><div class="min" id="bmin"></div><div class="lim" id="blim"></div></div>
+      <p id="bartxt"></p>
+    </div>
+    <ul class="checks" id="checks"></ul>
+  </section>
+</div>
+
+<section class="section">
+  <div class="tabs" role="tablist" id="tabs2" aria-label="Reference">
+    <button role="tab" aria-selected="true" data-t="flags">What each flag does</button>
+    <button role="tab" aria-selected="false" data-t="sizes">Suggested sizes</button>
+    <button role="tab" aria-selected="false" data-t="notes">How to pick a size</button>
+  </div>
+  <div id="p-flags" role="tabpanel">
+    <div class="filter"><input type="text" id="q" placeholder="Search flags, e.g. heap, G1, nogui" aria-label="Search flags"></div>
+    <div class="scroll"><table><thead><tr><th>Category</th><th>Flag</th><th>What it does</th><th>In your command?</th></tr></thead><tbody id="ftb"></tbody></table></div>
+  </div>
+  <div id="p-sizes" role="tabpanel" hidden>
+    <div class="scroll"><table><thead><tr><th>Max heap</th><th>Fixed heap</th><th>Shrinking heap</th><th>Region size</th><th>Good for</th></tr></thead><tbody id="stb"></tbody></table></div>
+    <p class="legend" style="margin-top:10px;max-width:70ch">Shrinking heap starts at a quarter of the maximum and gives memory back when idle. Fixed heap claims everything at startup, which is steadier on a dedicated PC. Above 12 GB, Aikar's larger-heap values apply (40/50% new size, 16M regions, 15% reserve, 20% occupancy). The 4M region size at 4 GB and below is an adjustment, not Aikar's own figure.</p>
+  </div>
+  <div id="p-notes" class="panel notes" role="tabpanel" hidden>
+    <p><strong>More is not faster.</strong> A bigger heap just makes each full cleanup longer. Pick the smallest <code>-Xmx</code> your peak load fits in.</p>
+    <p><strong>Measure, do not guess.</strong> Run <code>spark healthreport</code> with your biggest group online. If the heap sits under about 70% of the max, you have enough.</p>
+    <p><strong>Leave room outside the heap.</strong> Java uses another 1 to 2 GB beyond <code>-Xmx</code> on a heavily modded server, and your OS needs RAM too. On a 24 GB PC, 8 GB is a good ceiling.</p>
+    <p><strong>Test it.</strong> The builder gives you flags, not a guarantee. Watch the server log for warnings the first time you start.</p>
+  </div>
+</section>
+<footer>Handcrafted by @JRYBHAI (you can find me in DISCORD)</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TOG=[
+ ["shrink","Low idle RAM (shrinking heap)","Yes: starts small, grows when needed and gives memory back. No: fixed heap, claimed at startup (steadier on a dedicated PC).",1],
+ ["dgc","Ignore System.gc() calls from mods","Adds -XX:+DisableExplicitGC.",1],
+ ["oom","Exit if memory runs out","Adds -XX:+ExitOnOutOfMemoryError so a server manager can restart it.",0],
+ ["dump","Save a heap dump if memory runs out","Adds -XX:+HeapDumpOnOutOfMemoryError. Creates a large file; debugging only.",0],
+ ["vec","Vector module (jdk.incubator.vector)","Only helps mods that use it. Needs Java 16+.",0],
+ ["netty","Netty noUnsafe","Adds -Dio.netty.noUnsafe=true. Keep it off unless it fixed a warning for you.",0],
+ ["nogui","Hide the server's own window (nogui)","Adds nogui after the jar name. Leave on if you use a console or manager.",1]];
+const S={};TOG.forEach(t=>S[t[0]]=!!t[3]);
+$("toggles").innerHTML=TOG.map(t=>`<div class="field toggle"><div><label id="l-${t[0]}">${t[1]}</label><small>${t[2]}</small></div><div class="sw" role="group" aria-labelledby="l-${t[0]}" data-k="${t[0]}"><button type="button" data-v="1">Yes</button><button type="button" data-v="0">No</button></div></div>`).join("");
+document.querySelectorAll(".sw").forEach(sw=>sw.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S[sw.dataset.k]=b.dataset.v==="1";render()}));
+const GCN={"Aikar's G1 flags":"The usual tuned set for Minecraft servers.","Basic G1":"Just turns G1 on.","Generational ZGC (Java 21+)":"Needs Java 21+, uses more CPU, returns memory eagerly."};
+
+const FRAC=0.25,CUT=4,SMALL=4,LARGE=8;
+const fmtG=r=>Number.isInteger(r)?r+"G":Math.round(r*1024)+"M";
+function region(r){return r<=CUT?SMALL:LARGE}
+function aikar(r){return r>12?{n:40,m:50,r:16,v:15,i:20}:{n:30,m:40,r:region(r),v:20,i:15}}
+
+function build(){
+  let ram=parseFloat($("ram").value),total=parseFloat($("total").value);
+  if(!(ram>0))ram=0;const jar=$("jar").value.trim(),jv=$("java").value.trim()||"java",gc=$("gc").value,extra=$("extra").value.trim();
+  const Z=gc.startsWith("Generational"),sh=S.shrink,a=aikar(ram),forge=$("launch").value==="forge",ver=+$("jver").value;
+  const mx="-Xmx"+fmtG(ram),ms=sh?"-Xms"+Math.round(ram*1024*FRAC)+"M":"-Xms"+fmtG(ram);
+  const mem=Z?(sh?"":"-XX:+AlwaysPreTouch "):(sh?"-XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:G1PeriodicGCInterval=60000 ":"-XX:+AlwaysPreTouch ");
+  const gcf=Z?"-XX:+UseZGC "+(ver>=24?"":"-XX:+ZGenerational "):gc==="Basic G1"?"-XX:+UseG1GC ":`-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=${a.n} -XX:G1MaxNewSizePercent=${a.m} -XX:G1HeapRegionSize=${a.r}M -XX:G1ReservePercent=${a.v} -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=${a.i} -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://emc.gs -Daikars.new.flags=true `;
+  const opt=(S.dgc?"-XX:+DisableExplicitGC ":"")+(S.oom?"-XX:+ExitOnOutOfMemoryError ":"")+(S.dump?"-XX:+HeapDumpOnOutOfMemoryError ":"")+(S.vec?"--add-modules=jdk.incubator.vector ":"")+(S.netty?"-Dio.netty.noUnsafe=true ":"");
+  const j=jv.includes(" ")?`"${jv}"`:jv, ex=extra?extra+" ":"", ng=S.nogui?" nogui":"",jr=forge?"@user_jvm_args.txt @libraries/net/minecraftforge/forge/<version>/win_args.txt"+ng+" %*":`-jar "${jar}"`+ng;
+  const parts={j,ms,mx,mem,gcf,opt,ex,jr};
+  const all=[j,ms,mx].join(" ")+" "+mem+gcf+opt+ex+jr,cmd=forge?j+" "+jr:all;
+  const checks=[
+   ["RAM",ram<1?"Give the server at least 1 GB.":ram>total*0.75?"Heap is over 75% of your total RAM. Leave room for the OS and Java overhead (1 to 2 GB on modded servers).":"OK: RAM looks reasonable."],
+   ["Jar name",forge?"OK: Not needed for Forge or NeoForge.":!jar?"Enter your server jar name.":!jar.toLowerCase().endsWith(".jar")?"The jar name usually ends in .jar. Check the spelling.":"OK"],
+   ["Java version",Z&&ver<21?"ZGC needs Java 21 or newer. Pick Java 21 above, or switch to G1.":Z?"OK: ZGC works on Java "+ver+" but uses more CPU than G1.":"OK"],
+   ["Heap size rules",ram>12?"Above 12 GB: Aikar's larger-heap values are used (see Suggested sizes).":"OK"]];
+  return{cmd,all,parts,checks,ram,total,sh,forge,args:(ms+" "+mx+" "+mem+gcf+opt+ex).trim().split(/\s+/).join("\n"),ur:forge?jr.replace("win_","unix_").replace(" %*"," \"$@\""):jr};
+}
+let tab="cmd",cur;
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function colored(p){return `<span class="fl">${esc(p.j)}</span> <span class="fl h">${esc(p.ms)} ${esc(p.mx)}</span> <span class="fl h">${esc(p.mem)}</span><span class="fl g">${esc(p.gcf)}</span><span class="fl">${esc(p.opt+p.ex)}</span><span class="fl j">${esc(p.jr)}</span>`}
+function render(){
+  cur=build();
+  document.querySelectorAll(".sw").forEach(sw=>sw.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(S[sw.dataset.k]===(b.dataset.v==="1")))));
+  $("gcnote").textContent=GCN[$("gc").value];
+  const forge=cur.forge;$("targs").hidden=!forge;$("jarf").hidden=forge;
+  $("lnote").textContent=forge?"Paste the flags from the user_jvm_args.txt tab into that file, then start with the run.bat or run.sh the installer made. Replace <version> with the folder name inside libraries/net/minecraftforge/forge (NeoForge: net/neoforged/neoforge).":"Fabric, Quilt, Paper, Purpur and vanilla start with -jar.";
+  if(!forge&&tab==="args"){tab="cmd";document.querySelectorAll("#tabs button").forEach(x=>{const on=x.dataset.t==="cmd";x.setAttribute("aria-selected",on);x.tabIndex=on?0:-1})}
+  const D=t=>`<span class="fl" style="color:var(--code-dim)">${t}</span>`,P=cur.parts,
+   L=(k,t)=>t.trim().split(/\s+/).filter(Boolean).map(x=>`<span class="fl ${k}">${esc(x)}</span>`).join("\n"),
+   c=forge?`<span class="fl">${esc(P.j)}</span> <span class="fl j">${esc(P.jr)}</span>`:colored(P),
+   u=forge?`<span class="fl">${esc(P.j)}</span> <span class="fl j">${esc(cur.ur)}</span>`:c,
+   O={cmd:c,args:D("# user_jvm_args.txt: one flag per line")+"\n"+[L("h",P.ms+" "+P.mx+" "+P.mem),L("g",P.gcf),L("",P.opt+P.ex)].filter(Boolean).join("\n"),
+    bat:[D("@echo off"),D('cd /d "%~dp0"'),c,D("pause")].join("\n"),
+    sh:[D("#!/bin/bash"),D('cd "$(dirname "$0")"'),D("exec")+" "+u].join("\n")};
+  $("out").innerHTML=O[tab];
+  const {ram,total}=cur,pct=total>0?Math.min(100,ram/total*100):0,minG=cur.sh?ram*FRAC:ram;
+  $("bmax").style.width=pct+"%";$("bmin").style.width=(total>0?Math.min(100,minG/total*100):0)+"%";$("blim").style.left="75%";
+  $("bartxt").textContent=`Heap grows up to ${ram||0} GB of ${total||0} GB (${Math.round(pct)}%). Starts at ${(minG||0).toFixed(minG%1?2:0)} GB. Dashed line = 75% limit.`;
+  $("checks").innerHTML=cur.checks.map(([k,v])=>{const ok=v.startsWith("OK");return `<li class="${ok?"":"warn"}"><b>${ok?"✓":"!"} ${k}</b><span>${ok?(v==="OK"?"All good.":v.slice(4)):v}</span></li>`}).join("");
+  flagsTable();
+}
+const FL=[
+["Memory","-Xmx","Maximum heap Java can use."],
+["Memory","-Xms","Heap size at startup. Equal to -Xmx keeps it fixed; lower lets it grow and shrink."],
+["Memory","-XX:+AlwaysPreTouch","Claims and touches all of the starting heap at startup. Slower start, and the memory is never released. Skip it if you want low idle RAM."],
+["Memory","-XX:MinHeapFreeRatio","With MaxHeapFreeRatio: after a GC, Java grows the heap if free space is under the first percent and shrinks it if over the second."],
+["Memory","-XX:G1PeriodicGCInterval=60000","If no GC ran for that many milliseconds (60 s), G1 runs one and returns unused memory to the OS. Needs Java 12+."],
+["Memory","-XX:+UseStringDeduplication","Optional. G1 merges duplicate strings to save a little memory, at a small CPU cost."],
+["Garbage collector","-XX:+UseG1GC","Picks the G1 collector. Usually the default, but with a tiny heap or under 2 CPUs Java may pick another, so set it."],
+["Garbage collector","-XX:+ParallelRefProcEnabled","Handles reference objects on several threads, which shortens pauses."],
+["Garbage collector","-XX:MaxGCPauseMillis=200","The pause length G1 aims for. It is a goal, not a limit."],
+["Garbage collector","-XX:+UnlockExperimentalVMOptions","Needed to switch on a few of the flags below."],
+["Garbage collector","-XX:+DisableExplicitGC","Ignores System.gc() calls from mods and plugins."],
+["Garbage collector","-XX:G1NewSizePercent","With G1MaxNewSizePercent: minimum and maximum share of the heap for new, short-lived objects. Minecraft creates a lot of those."],
+["Garbage collector","-XX:G1HeapRegionSize","Size of each heap region. Fewer, bigger regions suit large objects."],
+["Garbage collector","-XX:G1ReservePercent","Free heap kept in reserve so a GC does not run out of room to move objects."],
+["Garbage collector","-XX:G1HeapWastePercent=5","Stop cleaning old regions once this much wasted space is left."],
+["Garbage collector","-XX:G1MixedGCCountTarget=4","Spreads old-region cleanup across up to 4 short GCs."],
+["Garbage collector","-XX:InitiatingHeapOccupancyPercent","Starts the background old-region scan when old data fills this percent of the heap. Lower starts earlier."],
+["Garbage collector","-XX:G1MixedGCLiveThresholdPercent=90","Regions with more than this percent still in use are skipped."],
+["Garbage collector","-XX:G1RSetUpdatingPauseTimePercent=5","Limits how much of a pause goes to bookkeeping. The rest happens in the background."],
+["Garbage collector","-XX:SurvivorRatio=32","Makes the space for objects that survive one GC small."],
+["Garbage collector","-XX:MaxTenuringThreshold=1","Moves objects to old memory after surviving one GC."],
+["Garbage collector","-XX:+PerfDisableSharedMem","Stops Java writing a monitoring file to disk. Avoids small disk stalls, but monitoring tools cannot attach."],
+["Other","-Daikars.new.flags=true","Label only (with -Dusing.aikars.flags), no effect on performance."],
+["Other","--add-modules=jdk.incubator.vector","Exposes a CPU-vector library. Only helps mods that use it; harmless otherwise."],
+["Other","-Dio.netty.noUnsafe=true","Makes the networking library avoid a low-level API. May be slightly slower. Keep only if it fixed a warning."],
+["Other","-XX:+ExitOnOutOfMemoryError","Exits if memory runs out, so your server manager can restart the server instead of leaving it half-dead."],
+["Other","-XX:+HeapDumpOnOutOfMemoryError","Saves a large dump file on an out-of-memory crash. Only useful for debugging."],
+["Other","nogui","Not a Java flag. Goes after -jar and skips the server's own window."],
+["Other","-XX:+UseZGC","With -XX:+ZGenerational: a different collector (with ZGenerational on Java 21 to 23; Java 24+ is generational by default). Returns memory eagerly but uses more CPU. Remove every G1 flag if you use it."]];
+function flagsTable(){
+  const q=$("q").value.toLowerCase(),cmd=cur.all;
+  $("ftb").innerHTML=FL.filter(r=>!q||r.join(" ").toLowerCase().includes(q)).map(r=>{const on=cmd.includes(r[1]);return `<tr class="${on?"on":""}"><td>${r[0]}</td><td><code>${esc(r[1])}</code></td><td>${esc(r[2])}</td><td><span class="chip ${on?"y":"n"}">${on?"Yes":"No"}</span></td></tr>`}).join("")||`<tr><td colspan="4">No flags match. Try a shorter search.</td></tr>`;
+}
+const SZ=[[2,"Vanilla or a few light mods, 1 to 3 players"],[4,"Light modpack, up to 5 players"],[6,"Medium mods, 5 to 10 players"],[8,"Heavy worldgen and many mods"],[10,"Very heavy modpacks or 15+ players"],[12,"Rarely needed"]];
+function sizes(){const r=cur?cur.ram:0;$("stb").innerHTML=SZ.map(([g,t])=>`<tr class="${g===r?"hl":""}"><td><b>${g} GB</b></td><td><code>-Xms${g}G -Xmx${g}G</code></td><td><code>-Xms${Math.round(g*1024*FRAC)}M -Xmx${g}G</code></td><td>${region(g)}M</td><td>${t}</td></tr>`).join("")}
+function tabs(id,fn,ctl){const el=$(id),vis=()=>[...el.querySelectorAll("button:not([hidden])")];
+ const sel=b=>{el.querySelectorAll("button").forEach(x=>{const on=x===b;x.setAttribute("aria-selected",String(on));x.tabIndex=on?0:-1});fn(b.dataset.t)};
+ el.querySelectorAll("button").forEach(x=>{x.setAttribute("aria-controls",ctl(x.dataset.t));x.tabIndex=x.getAttribute("aria-selected")==="true"?0:-1});
+ el.addEventListener("click",e=>{const b=e.target.closest("button");if(b)sel(b)});
+ el.addEventListener("keydown",e=>{const k=e.key;if(!["ArrowRight","ArrowLeft","Home","End"].includes(k))return;const l=vis(),i=l.indexOf(document.activeElement);if(i<0)return;e.preventDefault();const n=k==="Home"?0:k==="End"?l.length-1:(i+(k==="ArrowRight"?1:-1)+l.length)%l.length;l[n].focus();sel(l[n])})}
+tabs("tabs",t=>{tab=t;render()},()=>"out");
+tabs("tabs2",t=>{["flags","sizes","notes"].forEach(k=>$("p-"+k).hidden=k!==t);if(t==="sizes")sizes()},t=>"p-"+t);
+["ram","total","jar","java","launch","jver","gc","extra"].forEach(i=>$(i).addEventListener("input",()=>{render();sizes()}));
+$("q").addEventListener("input",flagsTable);
+$("copy").addEventListener("click",async()=>{
+  const t=tab==="cmd"?cur.cmd:tab==="args"?cur.args:tab==="bat"?"@echo off\r\ncd /d \"%~dp0\"\r\n"+cur.cmd+"\r\npause":"#!/bin/bash\ncd \"$(dirname \"$0\")\"\nexec "+(cur.forge?cur.parts.j+" "+cur.ur:cur.cmd)+"\n";
+  let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){try{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}}
+  $("msg").textContent=ok?"Copied.":"Copy failed. Select the text and copy it by hand.";setTimeout(()=>$("msg").textContent="",2200)});
+$("theme").addEventListener("click",()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark";$("theme").textContent=dark?"Switch to dark":"Switch to light"});
+if(matchMedia("(prefers-color-scheme:dark)").matches)$("theme").textContent="Switch to light";
+render();sizes();
+</script>
+</body>
+</html>
